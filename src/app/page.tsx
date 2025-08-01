@@ -6,11 +6,15 @@ import { ShareIcon, ShieldCheckIcon, CreditCardIcon, DownloadIcon } from 'lucide
 import Link from 'next/link'
 
 // Cache para evitar consultas repetidas durante el desarrollo
-let cachedDbStatus: { success: boolean; userCount?: number; error?: string; timestamp: number } | null = null
+type DbStatus = 
+  | { success: true; userCount: number; timestamp: number }
+  | { success: false; error: string; timestamp: number }
+
+let cachedDbStatus: DbStatus | null = null
 const CACHE_DURATION = 30000 // 30 segundos
 
 // Función server action para probar la conexión a la base de datos
-async function testDatabaseConnection() {
+async function testDatabaseConnection(): Promise<DbStatus> {
   // Verificar si tenemos un resultado cacheado válido
   if (cachedDbStatus && (Date.now() - cachedDbStatus.timestamp) < CACHE_DURATION) {
     return cachedDbStatus
@@ -18,12 +22,12 @@ async function testDatabaseConnection() {
 
   try {
     const userCount = await db.user.count()
-    const result = { success: true, userCount, timestamp: Date.now() }
+    const result: DbStatus = { success: true, userCount, timestamp: Date.now() }
     cachedDbStatus = result
     return result
   } catch (error) {
     console.error('Database connection error:', error)
-    const result = { success: false, error: 'Failed to connect to database', timestamp: Date.now() }
+    const result: DbStatus = { success: false, error: 'Failed to connect to database', timestamp: Date.now() }
     cachedDbStatus = result
     return result
   }
@@ -111,18 +115,18 @@ export default async function HomePage() {
             </div>
             <div className="text-right">
               {dbStatus.success ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-700">Connected</span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-green-700">Connected</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Users: {dbStatus.userCount}</p>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                   <span className="text-sm font-medium text-red-700">Error</span>
                 </div>
-              )}
-              {dbStatus.success && (
-                <p className="text-xs text-muted-foreground">Users: {dbStatus.userCount}</p>
               )}
             </div>
           </div>
