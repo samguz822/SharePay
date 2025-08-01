@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Link from 'next/link'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -49,8 +50,8 @@ export default function RootLayout({
                 </div>
                 <div className="flex items-center space-x-4">
                   <nav className="hidden md:flex items-center space-x-4">
-                    <a href="/" className="text-sm hover:text-primary transition-colors">Home</a>
-                    <a href="/about" className="text-sm hover:text-primary transition-colors">About</a>
+                    <Link href="/" className="text-sm hover:text-primary transition-colors">Home</Link>
+                    <Link href="/about" className="text-sm hover:text-primary transition-colors">About</Link>
                   </nav>
                   <span className="text-sm bg-secondary px-2 py-1 rounded">
                     Phase 0 - Architecture
