@@ -3,6 +3,11 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
+import Image from 'next/image'
+import { auth } from '@/lib/auth/config'
+import { Button } from '@/components/ui/button'
+import { signOut } from '@/lib/auth/config'
+import { UserIcon } from 'lucide-react'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -30,11 +35,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await auth()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
@@ -43,7 +50,9 @@ export default function RootLayout({
             <div className="container mx-auto px-4 py-4">
               <nav className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <h1 className="text-2xl font-bold text-primary">SharePay</h1>
+                  <Link href="/">
+                    <h1 className="text-2xl font-bold text-primary">SharePay</h1>
+                  </Link>
                   <span className="text-sm text-muted-foreground">
                     Collaborative Payment Platform
                   </span>
@@ -52,9 +61,52 @@ export default function RootLayout({
                   <nav className="hidden md:flex items-center space-x-4">
                     <Link href="/" className="text-sm hover:text-primary transition-colors">Home</Link>
                     <Link href="/about" className="text-sm hover:text-primary transition-colors">About</Link>
+                    {session && (
+                      <Link href="/dashboard" className="text-sm hover:text-primary transition-colors">Dashboard</Link>
+                    )}
                   </nav>
+                  
+                  {session ? (
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
+                        {session.user?.image ? (
+                          <Image 
+                            src={session.user.image} 
+                            alt={session.user.name || 'User'} 
+                            width={24}
+                            height={24}
+                            className="w-6 h-6 rounded-full"
+                          />
+                        ) : (
+                          <UserIcon className="w-6 h-6 text-gray-400" />
+                        )}
+                        <span className="text-sm text-gray-700">
+                          {session.user?.name?.split(' ')[0] || 'User'}
+                        </span>
+                      </div>
+                      <form
+                        action={async () => {
+                          "use server"
+                          await signOut({ redirectTo: "/" })
+                        }}
+                      >
+                        <Button type="submit" variant="outline" size="sm">
+                          Sign Out
+                        </Button>
+                      </form>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <Link href="/auth/signin">
+                        <Button size="sm">
+                          Sign In
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                  
                   <span className="text-sm bg-secondary px-2 py-1 rounded">
-                    Phase 0 - Architecture
+                    Phase 1 - Authentication
                   </span>
                 </div>
               </nav>
